@@ -5,7 +5,7 @@ Rails.application.routes.draw do
   # devise_for :users, path: '/', path_names: { sign_in: 'auth/login', sign_out: 'auth/logout', sign_up: 'auth/sign-up' }
 
   # authenticated :user do
-  #   root 'home#profile', as: :authenticated_root
+    root to: 'home#home'#, as: :authenticated_root
   # end
 
   # unauthenticated :user do
