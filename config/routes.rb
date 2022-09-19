@@ -2,15 +2,15 @@ Rails.application.routes.draw do
   
 
   # devise_for :users
-  devise_for :users, path: '/', path_names: { sign_in: 'auth/login', sign_out: 'auth/logout', sign_up: 'auth/sign-up' }
+  # devise_for :users, path: '/', path_names: { sign_in: 'auth/login', sign_out: 'auth/logout', sign_up: 'auth/sign-up' }
 
-  authenticated :user do
-    root 'home#profile', as: :authenticated_root
-  end
+  # authenticated :user do
+  #   root 'home#profile', as: :authenticated_root
+  # end
 
-  unauthenticated :user do
-    root 'home#home', as: :unauthenticated_root
-  end
+  # unauthenticated :user do
+  #   root 'home#home', as: :unauthenticated_root
+  # end
 
   namespace :api, defaults: { format: 'json' } do
     # VERSION 2 - STRIPE API & DASHBOARD PRODUCT
