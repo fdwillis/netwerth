@@ -10,8 +10,35 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 0) do
+ActiveRecord::Schema[7.0].define(version: 2022_09_19_134026) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "users", force: :cascade do |t|
+    t.integer "serviceFee", default: 35
+    t.string "appName", null: false
+    t.string "stripeCustomerID"
+    t.string "authentication_token"
+    t.string "accessPin", default: "customer", null: false
+    t.string "username"
+    t.string "referredBy", default: "admin", null: false
+    t.string "uuid", null: false
+    t.string "email", null: false
+    t.string "encrypted_password", default: "", null: false
+    t.string "phone"
+    t.boolean "twilioPhoneVerify"
+    t.string "reset_password_token"
+    t.datetime "reset_password_sent_at"
+    t.datetime "remember_created_at"
+    t.integer "sign_in_count", default: 0, null: false
+    t.datetime "current_sign_in_at"
+    t.datetime "last_sign_in_at"
+    t.inet "current_sign_in_ip"
+    t.inet "last_sign_in_ip"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
+  end
 
 end

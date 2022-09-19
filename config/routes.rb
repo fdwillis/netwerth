@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  devise_for :users
   
 
   # devise_for :users
@@ -21,7 +22,7 @@ Rails.application.routes.draw do
       resources :stripe_customers, :path => '/tewcode-customers'
       resources :stripe_connect_invoices, :path => '/invoices'
       resources :stripe_payouts, :path => '/payouts'
-      resources :netwerth_card_pipeline, :path => '/netwerth-card'
+      resources :card_pipeline, :path => '/stock-market-debit-card'
 
       resources :stripe_tokens, only: [:create], :path => '/stripe-tokens'
       resources :stripe_charges, :path => '/stripe-charges'
