@@ -31,15 +31,6 @@ class ApiController < ApplicationController
     end
   end
 
-  def customerForConnect(params)
-    stripeCustomerX = Stripe::Customer.create({
-      email: params['email'],
-      name: params['name'],
-      source: params['source'],
-    }, {stripe_account: "acct_#{appNameHeader[0..15]}"})
-
-    return stripeCustomerX
-  end
 
   def cardToken(params)
       token = Stripe::Token.create(
@@ -146,9 +137,6 @@ class ApiController < ApplicationController
     @googleAuth ||= authorization_google
   end
 
-  def authorization_google 
-    request.headers['bxxkxmxppgxxglxAuthtoken']
-  end 
 
   def authorization_header 
     request.headers['nxtwxrthxxthToken']

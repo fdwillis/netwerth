@@ -60,7 +60,7 @@
             <!-- For more info and examples you can check out https://github.com/jzaefferer/jquery-validation -->
             <div class="row g-0 justify-content-center">
               <div class="col-sm-8 col-xl-4">
-                <%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
+                <%= form_for(:newLogin, url: api_v2_sessions_path) do |f| %>
                   <div class="field">
                     <%= f.label :email %><br />
                     <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "form-control form-control-lg form-control-alt py-3" %>

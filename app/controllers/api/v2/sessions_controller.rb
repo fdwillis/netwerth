@@ -1,11 +1,14 @@
 class Api::V2::SessionsController < ApiController 
 	protect_from_forgery with: :null_session
+
+	def new
+	end
 	
 	def create
 		begin
-			user = User.find_by(email: params[:email])
+			user = User.find_by(email: params[:newLogin][:email])
 			
-			if !user.blank? && user&.valid_password?(params[:password])
+			if !user.blank? && user&.valid_password?(params[:newLogin][:password])
 				user.update(authentication_token: user.generate_authentication_token!)
 				
 				if Rails.env.production?

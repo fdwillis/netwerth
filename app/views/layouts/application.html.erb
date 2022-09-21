@@ -6,8 +6,8 @@
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
-    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
-    <%= javascript_importmap_tags %>
+    <%= stylesheet_link_tag 'application', media: 'all', 'data-turbolinks-track': 'reload' %>
+    <%= javascript_include_tag 'application', 'data-turbolinks-track': 'reload' %>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -33,6 +33,12 @@
                     <p>Login</p>
                     <p>Login</p>
                     <p>Login</p>
+                    <%= flash[:notice] %>
+                    <%= flash[:success] %>
+                    <%= flash[:error] %>
+                    <% if current_user %>
+                      <%= button_to "logout", destroy_user_session_path, method: :get  %>
+                    <% end %>
                   
                   <!-- Toggle Sidebar -->
                   <!-- Layout API, functionality initialized in Template._uiApiLayout()-->

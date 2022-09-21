@@ -1,9 +1,10 @@
 class HomeController < ApiController 
+	before_action :authenticate_user!
 
 	def chris
 	end
 
-	def home
+	def index
 	end
 
 	def signals

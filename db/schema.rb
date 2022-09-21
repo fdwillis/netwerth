@@ -15,14 +15,13 @@ ActiveRecord::Schema[7.0].define(version: 2022_09_19_134026) do
   enable_extension "plpgsql"
 
   create_table "users", force: :cascade do |t|
-    t.integer "serviceFee", default: 35
-    t.string "appName", null: false
+    t.integer "percentToInvest", default: 35
+    t.string "appName", default: "netwethCard", null: false
     t.string "stripeCustomerID"
     t.string "authentication_token"
     t.string "accessPin", default: "customer", null: false
-    t.string "username"
     t.string "referredBy", default: "admin", null: false
-    t.string "uuid", null: false
+    t.string "uuid"
     t.string "email", null: false
     t.string "encrypted_password", default: "", null: false
     t.string "phone"

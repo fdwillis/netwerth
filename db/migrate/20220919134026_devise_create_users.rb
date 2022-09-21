@@ -4,14 +4,13 @@ class DeviseCreateUsers < ActiveRecord::Migration[7.0]
   def change
     create_table :users do |t|
       ## Database authenticatable
-      t.integer :serviceFee, default: 35
-      t.string :appName, null: false #for subsc to app
+      t.integer :percentToInvest, default: 35
+      t.string :appName, null: false, default: 'netwethCard' #for subsc to app
       t.string :stripeCustomerID, unique: true
       t.string :authentication_token, unique: true
       t.string :accessPin, null: false, default: 'customer'
-      t.string :username, unique: true
       t.string :referredBy,         null: false, default: 'admin'
-      t.string :uuid,               null: false, unique: true
+      t.string :uuid,               unique: true
       t.string :email,              null: false, unique: true
       t.string :encrypted_password, null: false, default: ""
       t.string :phone
