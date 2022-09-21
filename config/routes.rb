@@ -16,8 +16,7 @@ Rails.application.routes.draw do
       resources :sessions, only: [:create, :destroy], path: '/auth/login'
       resources :registration, only: [:create, :destroy], path: '/auth/sign-up', as: :registration
       resources :stripe_connect_charges, :path => '/charges'
-      resources :stripe_connect_customers, :path => '/customers'
-      resources :stripe_customers, :path => '/tewcode-customers'
+      resources :stripe_customers, :path => '/customers'
       resources :stripe_connect_invoices, :path => '/invoices'
       resources :stripe_payouts, :path => '/payouts'
 

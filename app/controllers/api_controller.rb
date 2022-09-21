@@ -48,17 +48,14 @@ class ApiController < ApplicationController
   
   # AUTHORIZATIONS
   def authorize
-    user = findUser
-    
-    if user
+    if user = findUser
       if user&.hasAccess
         yield user
       else
-        render json: {message: "Please choose an account type"}
+        render json: {message: "Please choose an account type", success: false}
       end
     else
-      # render json: {message: "Invalid Token: Please Log Out To Reset Your Session"}, status: 401
-      yield
+      render json: {message: "Invalid Token", success: false}, status: 401
     end
   end
 

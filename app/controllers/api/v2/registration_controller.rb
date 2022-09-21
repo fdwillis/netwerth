@@ -4,7 +4,6 @@ class Api::V2::RegistrationController < ApiController
   end
 
 	def create
-		debugger
     begin
       if buildAddress && buildContact
 	    	if params['password'] == params['password_confirmation']
