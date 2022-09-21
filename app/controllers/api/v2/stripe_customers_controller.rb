@@ -57,8 +57,21 @@ class Api::V2::StripeCustomersController < ApiController
 			begin
 				customerToShow = Stripe::Customer.retrieve(user&.stripeCustomerID)
 
+				bankAccounts = Stripe::Customer.list_sources(
+				  user&.stripeCustomerID,
+				  {object: 'bank_account'},
+				)
+				
+
+				cards = Stripe::Customer.list_sources(
+				  user&.stripeCustomerID,
+				  {object: 'card'},
+				)
+
 				render json: {
 					stripeCustomer: customerToShow,
+					bankAccounts: bankAccounts['data'],
+					cards: cards['data'],
 					success: true
 				}
 				return
