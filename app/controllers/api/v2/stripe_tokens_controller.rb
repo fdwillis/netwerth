@@ -2,7 +2,11 @@ class Api::V2::StripeTokensController < ApiController
 	def create
 		authorize do |user|
 			begin
-				token = cardToken(cardTokenParams)
+				if !cardTokenParams.blank?
+					token = cardToken(cardTokenParams)
+				else
+					token = bankToken(bankTokenParams)
+				end
 				
 				render json: {
 					token: token,
@@ -26,6 +30,11 @@ class Api::V2::StripeTokensController < ApiController
 
 	def cardTokenParams
 		connparamsClean = params.permit(:number, :exp_year, :exp_month, :cvc)
+		return connparamsClean.reject{|_, v| v.blank?}
+	end
+
+	def bankTokenParams
+		connparamsClean = params.permit(:account_holder_name, :account_holder_type, :routing_number, :account_number)
 		return connparamsClean.reject{|_, v| v.blank?}
 	end
 end

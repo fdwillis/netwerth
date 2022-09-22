@@ -45,6 +45,20 @@ class ApiController < ApplicationController
     return token
   end
 
+  def bankToken(params)
+      token = Stripe::Token.create({
+        bank_account: {
+          country: 'US',
+          currency: 'usd',
+          account_holder_name: params['account_holder_name'],
+          account_holder_type: params['account_holder_type'],
+          routing_number: params['routing_number'],
+          account_number: params['account_number'],
+        },
+      })
+    return token
+  end
+
   
   # AUTHORIZATIONS
   def authorize

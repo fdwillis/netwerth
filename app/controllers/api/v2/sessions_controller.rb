@@ -6,9 +6,9 @@ class Api::V2::SessionsController < ApiController
 	
 	def create
 		begin
-			user = User.find_by(email: params[:newLogin][:email])
+			user = User.find_by(email: params[:email])
 			
-			if !user.blank? && user&.valid_password?(params[:newLogin][:password])
+			if !user.blank? && user&.valid_password?(params[:password])
 				user.update(authentication_token: user.generate_authentication_token!)
 				
 				if Rails.env.production?
@@ -16,7 +16,6 @@ class Api::V2::SessionsController < ApiController
 				end
 				render json: {
 					email: user.email,
-					username: user.username,
 					accessPin: user.accessPin,
 					uuid: user.uuid, 
 					stripeCustomerID: user.stripeCustomerID, 
