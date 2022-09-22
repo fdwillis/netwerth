@@ -14,13 +14,11 @@ class Api::V2::StripeChargesController < ApiController
 					available = !pullCardHolderx['spending_controls']['spending_limits'].blank? ? pullCardHolderx['spending_controls']['spending_limits'].first['amount'] : 0
 				end
 
-
-
 				render json: {
 					deposits: deposits,
 					available: available,
 					depositTotal: deposits.map{|e| e['amount']}.flatten.sum ,
-					invested: 10000 ,
+					invested: deposits.map{|e| ((e['amount'] - (e['amount']*0.029).to_i + 30)) - Stripe::Topup.retrieve(e['metadata']['topUp'])['amount']}.flatten.sum  ,
 					success: true
 				}
 			rescue Stripe::StripeError => e
