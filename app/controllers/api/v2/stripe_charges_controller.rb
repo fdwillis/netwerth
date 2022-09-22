@@ -4,8 +4,23 @@ class Api::V2::StripeChargesController < ApiController
 	def index
 		authorize do |user|
 			begin
+
+				if user&.admin?
+					deposits = Stripe::PaymentIntent.list()['data']
+					available = Stripe::Issuing::Cardholder.list()['data'].map{|e| e['spending_controls']['spending_limits']}.flatten.sum
+				else
+					pullCardHolderx = Stripe::Issuing::Cardholder.retrieve(Stripe::Customer.retrieve(user&.stripeCustomerID)['metadata']['cardHolder'])
+					deposits = Stripe::PaymentIntent.list(customer: user&.stripeCustomerID)['data']
+					available = !pullCardHolderx['spending_controls']['spending_limits'].blank? ? pullCardHolderx['spending_controls']['spending_limits'].first['amount'] : 0
+				end
+
+
+
 				render json: {
-					deposits: user.admin? ? Stripe::PaymentIntent.list()['data'] : Stripe::PaymentIntent.list(customer: user&.stripeCustomerID)['data'],
+					deposits: deposits,
+					available: available,
+					depositTotal: deposits.map{|e| e['amount']}.flatten.sum ,
+					invested: 10000 ,
 					success: true
 				}
 			rescue Stripe::StripeError => e
