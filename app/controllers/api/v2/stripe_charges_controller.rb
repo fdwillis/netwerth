@@ -24,12 +24,12 @@ class Api::V2::StripeChargesController < ApiController
 	def create
 		authorize do |user|
 			begin
-				stripeAmountX = User.stripeAmount(stripeAllowed[:amount])
+				stripeAmountX = User.stripeAmount(stripeAllowed[:amount].to_s)
 				charge = Stripe::PaymentIntent.create({
 				  amount: stripeAmountX + (stripeAmountX*0.029).to_i.round(-1) + 30,
 				  currency: 'usd',
 				  customer: user&.stripeCustomerID, #request to token endpoint?
-				  description: "Netwerth Card Deposit: #{stripeAllowed[:amount]}",
+				  description: "Netwerth Card Deposit: #{stripeAllowed[:amount].to_s * 0.01}",
 				  confirm: true
 				})
 				
