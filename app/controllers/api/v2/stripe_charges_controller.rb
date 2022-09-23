@@ -6,7 +6,8 @@ class Api::V2::StripeChargesController < ApiController
 			begin
 
 				if user&.admin?
-					deposits = Stripe::PaymentIntent.list()['data']
+					deposits = []
+					pullPaymentsToFilter = Stripe::PaymentIntent.list()['data'].map{|e| !e['metadata']['topUp'].blank? ? deposits.push(e) : next }.flatten
 					available = Stripe::Issuing::Cardholder.list()['data'].map{|e| e['spending_controls']['spending_limits']}.flatten.sum
 				else
 					pullCardHolderx = Stripe::Issuing::Cardholder.retrieve(Stripe::Customer.retrieve(user&.stripeCustomerID)['metadata']['cardHolder'])
@@ -22,6 +23,7 @@ class Api::V2::StripeChargesController < ApiController
 					success: true
 				}
 			rescue Stripe::StripeError => e
+				debugger
 				render json: {
 					error: e.error.message,
 					success: false
