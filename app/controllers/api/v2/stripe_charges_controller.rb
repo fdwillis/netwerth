@@ -19,7 +19,7 @@ class Api::V2::StripeChargesController < ApiController
 				render json: {
 					deposits: deposits,
 					available: available,
-					depositTotal:depositRejects.flatten.sum ,
+					depositTotal: depositRejects.map(&:amount).flatten.sum ,
 					invested: depositRejects.map{|e| (((e['amount'] - (e['amount']*0.029).to_i + 30)) - Stripe::Topup.retrieve(e['metadata']['topUp'])['amount'])}.flatten.sum  ,
 					success: true
 				}
