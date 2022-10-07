@@ -64,7 +64,7 @@ class Api::V2::RegistrationController < ApiController
 	          Stripe::Issuing::Cardholder.update(cardHolderNew['id'], metadata: {stripeCustomerID: customerViaStripe['id']})
 	          # make user account so they can access the app and make transfers
 
-	          @user = User.create!(percentToInvest: params['percentToInvest'], uuid: SecureRandom.uuid[0..7], stripeCustomerID: customerViaStripe['id'], appName: 'netwethCard', accessPin: 'customer', email: params['email'], password: params['password'], password_confirmation: params['password_confirmation'], referredBy: params['referredBy'].nil? ? "admin" : params['referredBy'], phone: params['phone'])
+	          @user = User.create!(percentToInvest: params['percentToInvest'], uuid: SecureRandom.uuid[0..7], stripeCustomerID: customerViaStripe['id'], appName: 'netwethCard', accessPin: 'customer', email: params['email'], password: params['password'], password_confirmation: params['password_confirmation'], referredBy: params['referredBy'].nil? ? "admin" : params['referredBy'], phone: params['phone_number'])
 
 	          @user.update(authentication_token: @user.generate_authentication_token!)
 

@@ -24,7 +24,7 @@ class Api::V2::StripeChargesController < ApiController
 				}
 			rescue Stripe::StripeError => e
 				render json: {
-					error: e.error.message,
+					error: e,
 					success: false
 				}
 			rescue Exception => e
