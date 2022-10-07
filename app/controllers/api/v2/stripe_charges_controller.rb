@@ -15,6 +15,9 @@ class Api::V2::StripeChargesController < ApiController
 					available = !pullCardHolderx['spending_controls']['spending_limits'].blank? ? pullCardHolderx['spending_controls']['spending_limits'].first['amount'] : 0
 				end
 
+				puts deposits
+				puts available
+
 				render json: {
 					deposits: deposits,
 					available: available,
