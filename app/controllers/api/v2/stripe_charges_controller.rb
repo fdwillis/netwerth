@@ -14,15 +14,13 @@ class Api::V2::StripeChargesController < ApiController
 					deposits = Stripe::PaymentIntent.list(customer: user&.stripeCustomerID)['data']
 					available = !pullCardHolderx['spending_controls']['spending_limits'].blank? ? pullCardHolderx['spending_controls']['spending_limits'].first['amount'] : 0
 				end
-
-				puts deposits
-				puts available
+				depositRejects = deposits.reject{|e| e['refunded'] == 'true'}.reject{|e| !e['metadata']['topUp'].present?}
 
 				render json: {
 					deposits: deposits,
 					available: available,
-					depositTotal: deposits.map{|e| e['amount']}.flatten.sum ,
-					invested: deposits.map{|e| ((e['amount'] - (e['amount']*0.029).to_i + 30)) - Stripe::Topup.retrieve(e['metadata']['topUp'])['amount']}.flatten.sum  ,
+					depositTotal:depositRejects.flatten.sum ,
+					invested: depositRejects.map{|e| (((e['amount'] - (e['amount']*0.029).to_i + 30)) - Stripe::Topup.retrieve(e['metadata']['topUp'])['amount'])}.flatten.sum  ,
 					success: true
 				}
 			rescue Stripe::StripeError => e
