@@ -82,5 +82,5 @@ test:
 production:
   <<: *default
   database: netwerth_production
-  username: netwerth
-  password: <%= ENV["NETWERTH_DATABASE_PASSWORD"] %>
+  username: postgres
+  password: 
