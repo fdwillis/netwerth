@@ -11,7 +11,7 @@ class Api::V2::StripeChargesController < ApiController
 					available = Stripe::Issuing::Cardholder.list()['data'].map{|e| e['spending_controls']['spending_limits']}.flatten.sum
 				else
 					pullCardHolderx = Stripe::Issuing::Cardholder.retrieve(Stripe::Customer.retrieve(user&.stripeCustomerID)['metadata']['cardHolder'])
-					deposits = Stripe::PaymentIntent.list(customer: "cus_JIZop6VyqFZV0l")['data']
+					deposits = Stripe::PaymentIntent.list(customer: user&.stripeCustomerID)['data']
 					available = !pullCardHolderx['spending_controls']['spending_limits'].blank? ? pullCardHolderx['spending_controls']['spending_limits'].first['amount'] : 0
 				end
 				depositRejects = deposits.reject{|e| e['refunded'] == 'true'}.reject{|e| !e['metadata']['topUp'].present?}
