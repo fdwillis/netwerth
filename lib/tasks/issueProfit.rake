@@ -21,7 +21,6 @@ namespace :issueProfit do
           end
         end
 
-
         allCurrentCardholders = Stripe::Issuing::Cardholder.list()['data']
 
         allCurrentCardholders.each do |cardholder|
@@ -30,7 +29,8 @@ namespace :issueProfit do
 
           case true
           when payoutToCardHolder
-            investmentTotal = principleInvested.flatten.map{|cardholderIDSym, ownership| cardholderIDSym[cardholderSym]}.sum        
+
+            investmentTotal = principleInvested.flatten.map{|cardholderIDSym, ownership| cardholderIDSym[cardholderSym]}.compact.sum        
             
             ownership = investmentTotal/amountInvested # check this is a stripe friendly integer as expected
             loadSpendingMeta = cardholder['spending_controls']['spending_limits']
@@ -39,13 +39,16 @@ namespace :issueProfit do
             someCalAmount = loadSpendingMeta.empty? ? amountToIssue : loadSpendingMeta&.first['amount'].to_i + amountToIssue
 
             # send text to admin and investor of depsots made 
-            if Date.today <= DateTime.strptime(payout['expected_availability_date'].to_s,'%s').to_date + 1
+            
+            if Date.today > DateTime.strptime(payout['expected_availability_date'].to_s,'%s').to_date + 1
               Stripe::Issuing::Cardholder.update(cardholder['id'],{spending_controls: {spending_limits: [amount: someCalAmount, interval: 'per_authorization']}})
               Stripe::Topup.update(payout['id'], metadata: {payoutSent: true})
 
               validPaymentIntents.each do |paymentInt|
                 if paymentForPayout(paymentInt['metadata']['payout'], paymentInt['metadata']['topUp'])
-                  Stripe::PaymentIntent.update(paymentInt['id'], metadata: {payout: true})              
+                  customerX = Stripe::Customer.retrieve(paymentInt['customer'])
+
+                  Stripe::PaymentIntent.update(paymentInt['id'], metadata: {payout: true, payoutAmount: amountToIssue, fromPayout: payout['id']})
                 end
               end
             else
@@ -58,7 +61,7 @@ namespace :issueProfit do
       puts "Nothing to Run"
     end
 
-    puts "Profits Deposited"
+    puts "-DONE-"
   end
 end
 
