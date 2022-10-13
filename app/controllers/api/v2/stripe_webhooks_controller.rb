@@ -77,7 +77,7 @@ class Api::V2::StripeWebhooksController < ApiController
         Stripe::Issuing::Cardholder.update(cardHolderID,{spending_controls: {spending_limits: [amount: someCalAmount, interval: 'per_authorization']}})
       end
       
-      Stripe::PaymentIntent.update(paymentIntentID, metadata: {topUp: topUp['id']})
+      Stripe::PaymentIntent.update(paymentIntentID, metadata: {topUp: topUp['id'], payout: false})
       Stripe::Issuing::Card.update(customerToGrab['metadata']['issuedCard'].strip, status: 'active')
       return
     else
