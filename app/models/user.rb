@@ -66,7 +66,6 @@ class User < ApplicationRecord
   def self.stripeAmount(string)
     if string.is_a?(String)
       if string.include?(".")
-        debugger
         dollars = string.split(".")[0]
         cents = string.split(".")[1]
 
