@@ -14,23 +14,6 @@ class ApiController < ApplicationController
     }
   end
 
-  def twilioText(number, message)
-    if ENV['stripeLivePublish'].include?("pk_live_") && Rails.env.production? && number
-      account_sid = ENV['twilioAccounSID']
-      auth_token = ENV['twilioAuthToken']
-      client = Twilio::REST::Client.new(account_sid, auth_token)
-      
-      from = '+18335152633'
-      to = number
-
-      client.messages.create(
-        from: from,
-        to: to,
-        body: message
-      )
-    end
-  end
-
 
   def cardToken(params)
       token = Stripe::Token.create(

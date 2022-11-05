@@ -44,28 +44,49 @@ class User < ApplicationRecord
     adminAccess.include?(accessPin)     
   end
 
-  def self.stripeAmount(string)
-    converted = (string.gsub(/[^0-9]/i, '').to_i)
+  def self.twilioText(number, message)
+    if ENV['stripeLivePublish'].include?("pk_live_") && Rails.env.production? && number
+      account_sid = ENV['twilioAccounSID']
+      auth_token = ENV['twilioAuthToken']
+      client = Twilio::REST::Client.new(account_sid, auth_token)
+      
+      from = '+18335152633'
+      to = number
 
-    if string.include?(".")
-      dollars = string.split(".")[0]
-      cents = string.split(".")[1]
-
-      if cents.length == 2
-        stripe_amount = "#{dollars}#{cents}"
-      else
-        if cents === "0"
-          stripe_amount = ("#{dollars}00")
-        else
-          stripe_amount = ("#{dollars}#{cents.to_i * 10}")
-        end
-      end
-
-      return stripe_amount
+      client.messages.create(
+        from: from,
+        to: to,
+        body: message
+      )
     else
-      stripe_amount = converted * 100
-      return stripe_amount
+      :testing_mode
     end
+  end
+
+  def self.stripeAmount(string)
+    if string.is_a?(String)
+      if string.include?(".")
+        debugger
+        dollars = string.split(".")[0]
+        cents = string.split(".")[1]
+
+        if cents.length == 2
+          stripe_amount = "#{dollars}#{cents}"
+        else
+          if cents === "0"
+            stripe_amount = ("#{dollars}00")
+          else
+            stripe_amount = ("#{dollars}#{cents.to_i * 0.10}")
+          end
+        end
+      else
+        stripe_amount = string * 100
+      end
+    else
+      stripe_amount = string * 100
+    end
+
+    return stripe_amount
   end
 
   private

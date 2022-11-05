@@ -13,6 +13,7 @@ namespace :issueProfit do
 
           validPaymentIntents = Stripe::PaymentIntent.list({created: {lt: lastDateClearFromBatch.to_time.to_i}})['data']
           
+          
           validPaymentIntents.each do |paymentInt|
             if paymentForPayout(paymentInt['metadata']['payout'], paymentInt['metadata']['topUp'])
               customerX = Stripe::Customer.retrieve(paymentInt['customer'])
@@ -33,26 +34,27 @@ namespace :issueProfit do
             when payoutToCardHolder
 
               investmentTotal = principleInvested.flatten.map{|cardholderIDSym, ownership| cardholderIDSym[cardholderSym]}.compact.sum        
-              
-              ownership = (investmentTotal.to_f/amountInvested.to_f) # check this is a stripe friendly integer as expected
-              loadSpendingMeta = cardholder['spending_controls']['spending_limits']
+              ownership = (investmentTotal.to_f/amountInvested.to_f)
               amountToIssue = (payout['amount'] * ownership).round
               
+              
+              loadSpendingMeta = cardholder['spending_controls']['spending_limits']
               someCalAmount = loadSpendingMeta.empty? ? amountToIssue : loadSpendingMeta&.first['amount'].to_i + amountToIssue
 
               # send text to admin and investor of depsots made 
+              customerX = Stripe::Customer.retrieve(Stripe::Issuing::Cardholder.retrieve(cardholder['id'])['metadata']['stripeCustomerID'])
 
-              Stripe::Issuing::Cardholder.update(cardholder['id'],{spending_controls: {spending_limits: [amount: someCalAmount, interval: 'per_authorization']}})
-              Stripe::Topup.update(payout['id'], metadata: {payoutSent: true})
+              puts ">>>>>>phone:#{customerX['phone']}>>>>>>>>>>>>>>>>>>>>>Your balance has increased by $#{amountToIssue/100}"
+              textSent = User.twilioText(customerX['phone'], "Your balance has increased by $#{amountToIssue/100}")
 
               validPaymentIntents.each do |paymentInt|
                 if paymentForPayout(paymentInt['metadata']['payout'], paymentInt['metadata']['topUp'])
-                  customerX = Stripe::Customer.retrieve(paymentInt['customer'])
-
                   Stripe::PaymentIntent.update(paymentInt['id'], metadata: {payout: true, fromPayout: payoutPull['id']})
                 end
               end
             
+              Stripe::Issuing::Cardholder.update(cardholder['id'],{spending_controls: {spending_limits: [amount: someCalAmount, interval: 'per_authorization']}})
+              Stripe::Topup.update(payout['id'], metadata: {payoutSent: true})
             end
           end
         else
