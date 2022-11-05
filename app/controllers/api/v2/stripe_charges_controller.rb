@@ -45,7 +45,7 @@ class Api::V2::StripeChargesController < ApiController
 				  amount: stripeAmountX + (stripeAmountX*0.029).to_i.round(-1) + 30,
 				  currency: 'usd',
 				  customer: user&.stripeCustomerID, #request to token endpoint?
-				  description: "Netwerth Card Deposit: #{params[:amount].to_i * 0.01}",
+				  description: "Netwerth Card Deposit: #{params[:amount].to_i}",
 				  confirm: true
 				})
 				
