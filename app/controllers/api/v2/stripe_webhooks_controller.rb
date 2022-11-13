@@ -71,7 +71,7 @@ class Api::V2::StripeWebhooksController < ApiController
           metadata: {cardHolder: cardHolderID, deposit: true}
         })
       else
-        topUp = 'tu_customDueToWebhook'
+        topUp = {"id" => 'tu_customDueToWebhook'}
       end
 
       case loadSpendingMeta&.empty?
