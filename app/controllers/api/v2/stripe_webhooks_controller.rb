@@ -60,15 +60,19 @@ class Api::V2::StripeWebhooksController < ApiController
         transferGroup = findTransferGroup
       end
 
-      topUp = Stripe::Topup.create({
-        amount: amountToIssue,
-        currency: 'usd',
-        description: "#{cardHolderID} approximate deposit: $#{(chargeAmount - stripeFee).to_f * 0.1}",
-        statement_descriptor: 'Top-up',
-        destination_balance: 'issuing',
-        transfer_group: transferGroup, 
-        metadata: {cardHolder: cardHolderID, deposit: true}
-      })
+      if amountToIssue >= 100
+        topUp = Stripe::Topup.create({
+          amount: amountToIssue,
+          currency: 'usd',
+          description: "#{cardHolderID} approximate deposit: $#{(chargeAmount - stripeFee).to_f * 0.1}",
+          statement_descriptor: 'Top-up',
+          destination_balance: 'issuing',
+          transfer_group: transferGroup, 
+          metadata: {cardHolder: cardHolderID, deposit: true}
+        })
+      else
+        topUp = 'tu_customDueToWebhook'
+      end
 
       case loadSpendingMeta&.empty?
       when true
