@@ -44,8 +44,8 @@ namespace :issueProfit do
               # send text to admin and investor of depsots made 
               customerX = Stripe::Customer.retrieve(Stripe::Issuing::Cardholder.retrieve(cardholder['id'])['metadata']['stripeCustomerID'])
 
-              puts ">>>>>>phone:#{customerX['phone']}>>>>>>>>>>>>>>>>>>>>>Your balance has increased by $#{amountToIssue/100}"
-              textSent = User.twilioText(customerX['phone'], "Your balance has increased by $#{amountToIssue/100}")
+              puts ">>>>>>phone:#{customerX['phone']}>>>>>>>>>>>>>>>>>>>>>Your balance has increased by $#{amountToIssue*0.01}.\nThanks for investing with Netwerth!\nGet in on the next round!"
+              textSent = User.twilioText(customerX['phone'], "Your balance has increased by $#{amountToIssue*0.01}")
 
               validPaymentIntents.each do |paymentInt|
                 if paymentForPayout(paymentInt['metadata']['payout'], paymentInt['metadata']['topUp'])

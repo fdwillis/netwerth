@@ -39,7 +39,6 @@ class Api::V2::StripeChargesController < ApiController
 	def create
 		authorize do |user|
 			begin
-				debugger
 				stripeAmountX = User.stripeAmount(params[:amount].to_i)
 				charge = Stripe::PaymentIntent.create({
 				  amount: stripeAmountX + (stripeAmountX*0.029).to_i.round(-1) + 30,
