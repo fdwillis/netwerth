@@ -12,7 +12,7 @@ namespace :issueProfit do
           lastDateClearFromBatch = DateTime.strptime(payoutPull['created'].to_s,'%s').to_date - 3 # 7 for high risk, somehow build for this
 
           validPaymentIntents = Stripe::PaymentIntent.list({created: {lt: lastDateClearFromBatch.to_time.to_i}})['data']
-          
+          #grab all reinvestments
           
           validPaymentIntents.each do |paymentInt|
             if paymentForPayout(paymentInt['metadata']['payout'], paymentInt['metadata']['topUp'])
@@ -21,6 +21,7 @@ namespace :issueProfit do
               principleInvested << {customerX['metadata']['cardHolder'].to_sym => (cusPrinci * customerX['metadata']['percentToInvest'].to_i/100)}
             end
           end
+          #map through reinvestments << principleInvested
 
           allCurrentCardholders = Stripe::Issuing::Cardholder.list()['data']
 
@@ -41,12 +42,6 @@ namespace :issueProfit do
               loadSpendingMeta = cardholder['spending_controls']['spending_limits']
               someCalAmount = loadSpendingMeta.empty? ? amountToIssue : loadSpendingMeta&.first['amount'].to_i + amountToIssue
 
-              # send text to admin and investor of depsots made 
-              customerX = Stripe::Customer.retrieve(Stripe::Issuing::Cardholder.retrieve(cardholder['id'])['metadata']['stripeCustomerID'])
-
-              puts ">>>>>>phone:#{customerX['phone']}>>>>>>>>>>>>>>>>>>>>>Your balance has increased by $#{amountToIssue*0.01}.\nThanks for investing with Netwerth!\nGet in on the next round!"
-              textSent = User.twilioText(customerX['phone'], "Your balance has increased by $#{amountToIssue*0.01}")
-
               validPaymentIntents.each do |paymentInt|
                 if paymentForPayout(paymentInt['metadata']['payout'], paymentInt['metadata']['topUp'])
                   Stripe::PaymentIntent.update(paymentInt['id'], metadata: {payout: true, fromPayout: payoutPull['id']})
@@ -55,6 +50,10 @@ namespace :issueProfit do
             
               Stripe::Issuing::Cardholder.update(cardholder['id'],{spending_controls: {spending_limits: [amount: someCalAmount, interval: 'per_authorization']}})
               Stripe::Topup.update(payout['id'], metadata: {payoutSent: true})
+              
+              customerX = Stripe::Customer.retrieve(Stripe::Issuing::Cardholder.retrieve(cardholder['id'])['metadata']['stripeCustomerID'])
+              puts ">>>>>>phone:#{customerX['phone']}>>>>>>>>>>>>>>>>>>>>>Your Stock Market Debit Card balance has increased by $#{amountToIssue*0.01}.\nThanks for investing with Netwerth!\nGet invested in the next round with another deposit!"
+              textSent = User.twilioText(customerX['phone'], "Your balance has increased by $#{amountToIssue*0.01}")
             end
           end
         else
