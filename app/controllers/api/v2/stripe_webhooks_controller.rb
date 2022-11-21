@@ -50,15 +50,6 @@ class Api::V2::StripeWebhooksController < ApiController
       stripeFee = chargeSourceType == 'card' ? (chargeAmount*0.029).to_i + 30 : (chargeAmount*0.008).to_i  
       amountToIssue = ((chargeAmount - stripeFee) * percentToIssue).to_i
       someCalAmount = loadSpendingMeta.empty? ? amountToIssue : loadSpendingMeta&.first['amount'].to_i + amountToIssue
-      findTransferGroup = paymentIntentX['transfer_group']
-
-      # transfer funds to issuing balance
-      if findTransferGroup.nil?
-        transferGroup = SecureRandom.uuid[0..7]
-        updatePaymentIntentForTransfer = Stripe::PaymentIntent.update(paymentIntentID, transfer_group:transferGroup)
-      else
-        transferGroup = findTransferGroup
-      end
 
       if amountToIssue >= 100
         topUp = Stripe::Topup.create({
@@ -67,7 +58,6 @@ class Api::V2::StripeWebhooksController < ApiController
           description: "#{cardHolderID} approximate deposit: $#{(chargeAmount - stripeFee).to_f * 0.1}",
           statement_descriptor: 'Top-up',
           destination_balance: 'issuing',
-          transfer_group: transferGroup, 
           metadata: {cardHolder: cardHolderID, deposit: true}
         })
       else
