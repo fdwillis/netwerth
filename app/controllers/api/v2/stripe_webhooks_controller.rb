@@ -55,7 +55,7 @@ class Api::V2::StripeWebhooksController < ApiController
         topUp = Stripe::Topup.create({
           amount: amountToIssue,
           currency: 'usd',
-          description: "#{cardHolderID} approximate deposit: $#{(chargeAmount - stripeFee).to_f * 0.1}",
+          description: "#{cardHolderID} approximate deposit: $#{(chargeAmount - stripeFee).to_f * 0.01}",
           statement_descriptor: 'Top-up',
           destination_balance: 'issuing',
           metadata: {cardHolder: cardHolderID, deposit: true}
