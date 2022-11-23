@@ -53,7 +53,7 @@ namespace :issueProfit do
               
               customerX = Stripe::Customer.retrieve(Stripe::Issuing::Cardholder.retrieve(cardholder['id'])['metadata']['stripeCustomerID'])
               puts ">>>>>>phone:#{customerX['phone']}>>>>>>>>>>>>>>>>>>>>>Your Stock Market Debit Card balance has increased by $#{amountToIssue*0.01}.\nThanks for investing with Netwerth!\nGet invested in the next round with another deposit!"
-              textSent = User.twilioText(customerX['phone'], "Your balance has increased by $#{amountToIssue*0.01}")
+              textSent = User.twilioText(customerX['phone'], "Your balance has increased by $#{(amountToIssue*0.01).round(2)}")
             end
           end
         else
