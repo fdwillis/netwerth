@@ -5,7 +5,7 @@ namespace :issueProfit do
     # Stripe::Payout.list['data']
     Stripe::Topup.list['data'].map{|d| !d['metadata']['fromPayout'].blank? && d['metadata']['payoutSent'] == false.to_s ? (pullPayouts.append(d)) : next}.compact.flatten
     if !pullPayouts.blank?
-      principleInvested = []
+      principleInvestedArray = []
       pullPayouts.each do |payout|
         if Date.today > DateTime.strptime(payout['expected_availability_date'].to_s,'%s').to_date + 1  
           payoutPull = Stripe::Payout.retrieve(payout['metadata']['fromPayout'])
@@ -18,35 +18,35 @@ namespace :issueProfit do
             if paymentForPayout(paymentInt['metadata']['payout'], paymentInt['metadata']['topUp'])
               customerX = Stripe::Customer.retrieve(paymentInt['customer'])
               cusPrinci = (paymentInt['amount'] - ((paymentInt['amount']*0.029).to_i + 30))
-              principleInvested << {customerX['metadata']['cardHolder'].to_sym => (cusPrinci * customerX['metadata']['percentToInvest'].to_i/100)}
+              principleInvestedArray << {customerX['metadata']['cardHolder'].to_sym => (cusPrinci * customerX['metadata']['percentToInvest'].to_i/100)}
             end
           end
-          #map through reinvestments << principleInvested
+          #map through reinvestments << principleInvestedArray
 
           allCurrentCardholders = Stripe::Issuing::Cardholder.list()['data']
-          amountInvested = principleInvested.map(&:values).flatten.sum
+          groupPrinciple = principleInvestedArray.map(&:values).flatten.sum
 
           allCurrentCardholders.each do |cardholder|
             cardholderSym = cardholder['id'].to_sym
-            payoutToCardHolder = principleInvested.flatten.any? {|h| h[cardholderSym].present?}
+            payoutToCardHolder = principleInvestedArray.flatten.any? {|h| h[cardholderSym].present?}
 
             case true
             when payoutToCardHolder
 
-              investmentTotal = principleInvested.flatten.map{|cardholderIDSym, ownership| cardholderIDSym[cardholderSym]}.compact.sum        
-              ownership = (investmentTotal.to_f/amountInvested.to_f)
+              investmentTotalForUserX = principleInvestedArray.flatten.map{|cardholderIDSym, ownership| cardholderIDSym[cardholderSym]}.compact.sum        
+              ownership = (investmentTotalForUserX.to_f/groupPrinciple.to_f)
               amountToIssue = (payout['amount'] * ownership).round
               
-              
-              loadSpendingMeta = cardholder['spending_controls']['spending_limits']
-              someCalAmount = loadSpendingMeta.empty? ? amountToIssue : loadSpendingMeta&.first['amount'].to_i + amountToIssue
 
               validPaymentIntents.each do |paymentInt|
                 if paymentForPayout(paymentInt['metadata']['payout'], paymentInt['metadata']['topUp'])
-                  Stripe::PaymentIntent.update(paymentInt['id'], metadata: {payout: true, fromPayout: payoutPull['id'], paidBy: payout['id']})
+                  Stripe::PaymentIntent.update(paymentInt['id'], metadata: {payout: true, fromPayout: payoutPull['id'], paidBy: payout['id'], amountPaid: (amountToIssue/validPaymentIntents.size)})
                 end
               end
             
+              loadSpendingMeta = cardholder['spending_controls']['spending_limits']
+              someCalAmount = loadSpendingMeta.empty? ? amountToIssue : loadSpendingMeta&.first['amount'].to_i + amountToIssue
+              
               Stripe::Issuing::Cardholder.update(cardholder['id'],{spending_controls: {spending_limits: [amount: someCalAmount, interval: 'per_authorization']}})
               Stripe::Topup.update(payout['id'], metadata: {payoutSent: true})
               
