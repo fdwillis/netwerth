@@ -8,8 +8,8 @@ namespace :issueProfit do
       principleInvestedArray = []
       pullPayouts.each do |payout|
         if Date.today > DateTime.strptime(payout['expected_availability_date'].to_s,'%s').to_date + 1  
-          payoutPull = Stripe::Payout.retrieve(payout['metadata']['fromPayout'])
-          lastDateClearFromBatch = DateTime.strptime(payoutPull['created'].to_s,'%s').to_date - 3 # 7 for high risk, somehow build for this
+          principlePayoutPull = Stripe::Payout.retrieve(payout['metadata']['fromPayout'])
+          lastDateClearFromBatch = DateTime.strptime(principlePayoutPull['created'].to_s,'%s').to_date - 3 # 7 for high risk, somehow build for this
 
           validPaymentIntents = Stripe::PaymentIntent.list({created: {lt: lastDateClearFromBatch.to_time.to_i}})['data']
           #grab all reinvestments
@@ -40,7 +40,7 @@ namespace :issueProfit do
               
               validPaymentIntents.each do |paymentInt|
                 if paymentForPayout(paymentInt['metadata']['payout'], paymentInt['metadata']['topUp'])
-                  Stripe::PaymentIntent.update(paymentInt['id'], metadata: {payout: true, fromPayout: payoutPull['id'], paidBy: payout['id'], amountPaid: (amountToIssue)})
+                  Stripe::PaymentIntent.update(paymentInt['id'], metadata: {payout: true, fromPayout: principlePayoutPull['id'], paidBy: payout['id'], amountPaid: (amountToIssue)})
                 end
               end
             

@@ -15,7 +15,7 @@ class Api::V2::StripePayoutsController < ApiController
 				payoutArray.map{|e| e['amountPaid']}.sum
 
 				render json: {
-					payouts: payoutArray,
+					payouts: pullPaymentsToFilter,
 					returnOnInvestmentPercentage: returnOnInvestmentPercentage,
 					returnOnInvestmentNumber: returnOnInvestmentNumber,
 					depositTotal: payoutArray.map{|e| e['amount']}.sum,
