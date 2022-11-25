@@ -3,7 +3,7 @@ namespace :issueProfit do
   task ifCleared: :environment do 
     pullPayouts = []
     # Stripe::Payout.list['data']
-    Stripe::Topup.list['data'].map{|d| !d['metadata']['fromPayout'].blank? && d['metadata']['payoutSent'] == false.to_s ? (pullPayouts.append(d)) : next}.compact.flatten
+    Stripe::Topup.list({limit: 100})['data'].map{|d| !d['metadata']['fromPayout'].blank? && d['metadata']['payoutSent'] == false.to_s ? (pullPayouts.append(d)) : next}.compact.flatten
     if !pullPayouts.blank?
       principleInvestedArray = []
       pullPayouts.each do |payout|
@@ -37,10 +37,9 @@ namespace :issueProfit do
               ownership = (investmentTotalForUserX.to_f/groupPrinciple.to_f)
               amountToIssue = (payout['amount'] * ownership).round
               
-
               validPaymentIntents.each do |paymentInt|
                 if paymentForPayout(paymentInt['metadata']['payout'], paymentInt['metadata']['topUp'])
-                  Stripe::PaymentIntent.update(paymentInt['id'], metadata: {payout: true, fromPayout: payoutPull['id'], paidBy: payout['id'], amountPaid: (amountToIssue/validPaymentIntents.size)})
+                  Stripe::PaymentIntent.update(paymentInt['id'], metadata: {payout: true, fromPayout: payoutPull['id'], paidBy: payout['id'], amountPaid: (amountToIssue)})
                 end
               end
             
