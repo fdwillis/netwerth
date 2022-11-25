@@ -24,8 +24,7 @@ namespace :issueProfit do
           #map through reinvestments << principleInvested
 
           allCurrentCardholders = Stripe::Issuing::Cardholder.list()['data']
-
-         amountInvested = principleInvested.map(&:values).flatten.sum
+          amountInvested = principleInvested.map(&:values).flatten.sum
 
           allCurrentCardholders.each do |cardholder|
             cardholderSym = cardholder['id'].to_sym
@@ -44,7 +43,7 @@ namespace :issueProfit do
 
               validPaymentIntents.each do |paymentInt|
                 if paymentForPayout(paymentInt['metadata']['payout'], paymentInt['metadata']['topUp'])
-                  Stripe::PaymentIntent.update(paymentInt['id'], metadata: {payout: true, fromPayout: payoutPull['id']})
+                  Stripe::PaymentIntent.update(paymentInt['id'], metadata: {payout: true, fromPayout: payoutPull['id'], paidBy: payout['id']})
                 end
               end
             
@@ -52,7 +51,7 @@ namespace :issueProfit do
               Stripe::Topup.update(payout['id'], metadata: {payoutSent: true})
               
               customerX = Stripe::Customer.retrieve(Stripe::Issuing::Cardholder.retrieve(cardholder['id'])['metadata']['stripeCustomerID'])
-              puts ">>>>>>phone:#{customerX['phone']}>>>>>>>>>>>>>>>>>>>>>Your Stock Market Debit Card balance has increased by $#{amountToIssue*0.01}.\nThanks for investing with Netwerth!\nGet invested in the next round with another deposit!"
+              puts ">>>>>>phone:#{customerX['phone']}>>>>>>>>>>>>>>>>>>>>>Your Stock Market Debit Card balance has increased by $#{(amountToIssue*0.01).round}.\nThanks for investing with Netwerth!\nGet invested in the next round with another deposit!"
               textSent = User.twilioText(customerX['phone'], "Your balance has increased by $#{(amountToIssue*0.01).round(2)}")
             end
           end

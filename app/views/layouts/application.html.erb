@@ -26,44 +26,7 @@
               </a>
             <!-- Header Content -->
               <div class="content-header">
-            <% if current_user %>
-                <!-- Left Section -->
-                <div class="d-flex align-items-center">
-                    <p>Login</p>
-                    <p>Login</p>
-                    <p>Login</p>
-                    <p>Login</p>
-                    <%= flash[:notice] %>
-                    <%= flash[:success] %>
-                    <%= flash[:error] %>
-                    <% if current_user %>
-                      <%= button_to "logout", destroy_user_session_path, method: :get  %>
-                    <% end %>
-                  
-                  <!-- Toggle Sidebar -->
-                  <!-- Layout API, functionality initialized in Template._uiApiLayout()-->
-                  <!-- END Toggle Sidebar -->
-
-                  <!-- Toggle Mini Sidebar -->
-                  <!-- Layout API, functionality initialized in Template._uiApiLayout()-->
-
-                  <!-- Open Search Section (visible on smaller screens) -->
-                  <!-- Layout API, functionality initialized in Template._uiApiLayout() -->
-                  <!-- END Open Search Section -->
-
-                  <!-- Search Form (visible on larger screens) -->
-                  <!-- <form class="d-none d-md-inline-block" action="be_pages_generic_search.html" method="POST">
-                    <div class="input-group input-group-sm">
-                      <input type="text" class="form-control form-control-alt" placeholder="Search.." id="page-header-search-input2" name="page-header-search-input2">
-                      <span class="input-group-text border-0">
-                      </span>
-                    </div>
-                  </form> -->
-                  <!-- END Search Form -->
-                </div>
-                <!-- END Left Section -->
-
-            <% end %>
+            
               </div>
             <!-- END Header Content -->
 
@@ -98,18 +61,6 @@
           <main id="main-container">
             <!-- Hero -->
               <div class="content">
-                <% if current_user %>
-                  <div class="d-flex flex-column flex-md-row justify-content-md-between align-items-md-center py-2 text-center text-md-start">
-                    <div class="flex-grow-1 mb-1 mb-md-0">
-                      <h1 class="h3 fw-bold mb-2">
-                        Netwerth - Stock Market Debit Card
-                      </h1>
-                        <h2 class="h6 fw-medium fw-medium text-muted mb-0">
-                          Welcome <a class="fw-semibold" href="be_pages_generic_profile.html">John</a>, everything looks great.
-                        </h2>
-                    </div>
-                  </div>
-                <% end %>
               </div>
               <!-- END Hero -->
 

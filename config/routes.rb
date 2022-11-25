@@ -25,6 +25,7 @@ Rails.application.routes.draw do
       
       post 'stripe-connect-webhooks' => "stripe_connect_webhooks#index", as: :stripeConnectWebhooks
       post 'stripe-webhooks' => "stripe_webhooks#update", as: :stripeWebhooks
+      post 'twilio-webhooks' => "twilio_webhooks#update", as: :twilioWebhooks
       post 'keap-create' => "keap_webhooks#create", as: :createFromKeap
       post 'timekit-reschedule' => "timekit_webhooks#update", as: :updateTimekit
       post 'timekit-create' => "timekit_webhooks#create", as: :createTimekit
