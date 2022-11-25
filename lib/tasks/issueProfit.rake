@@ -32,6 +32,7 @@ namespace :issueProfit do
 
             case true
             when payoutToCardHolder
+              # test dividing amount issued by number of deposits per customer
 
               investmentTotalForUserX = principleInvestedArray.flatten.map{|cardholderIDSym, ownership| cardholderIDSym[cardholderSym]}.compact.sum        
               ownership = (investmentTotalForUserX.to_f/groupPrinciple.to_f)
@@ -50,7 +51,7 @@ namespace :issueProfit do
               Stripe::Topup.update(payout['id'], metadata: {payoutSent: true})
               
               customerX = Stripe::Customer.retrieve(Stripe::Issuing::Cardholder.retrieve(cardholder['id'])['metadata']['stripeCustomerID'])
-              puts ">>>>>>phone:#{customerX['phone']}>>>>>>>>>>>>>>>>>>>>>Your Stock Market Debit Card balance has increased by $#{(amountToIssue*0.01).round}.\nThanks for investing with Netwerth!\nGet invested in the next round with another deposit!"
+              puts ">>>>>>phone:#{customerX['phone']}>>>>>>>>>>>>>>>>>>>>>Your Stock Market Debit Card balance has increased by $#{(amountToIssue*0.01).round(2)}.\nThanks for investing with Netwerth!\nGet invested in the next round with another deposit!"
               textSent = User.twilioText(customerX['phone'], "Your balance has increased by $#{(amountToIssue*0.01).round(2)}")
             end
           end

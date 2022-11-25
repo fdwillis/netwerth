@@ -16,6 +16,10 @@ class Api::V2::StripeChargesController < ApiController
 				end
 				depositRejects = deposits.reject{|e| e['refunded'] == 'true'}.reject{|e| !e['metadata']['topUp'].present?}
 
+				puts depositRejects
+				puts deposits
+				puts available
+				
 				render json: {
 					deposits: depositRejects,
 					available: available,

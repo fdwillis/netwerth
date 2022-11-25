@@ -7,16 +7,18 @@ class Api::V2::StripePayoutsController < ApiController
 				payoutArray = []
 				if user&.admin?
 				else
-					pullPaymentsToFilter = Stripe::PaymentIntent.list(customer: user&.stripeCustomerID)['data'].map{|e| (!e['metadata']['payout'].blank? && e['metadata']['payout'].to_sym == true) ? payoutArray.push(e) : next }.flatten
+					pullPaymentsToFilter = Stripe::PaymentIntent.list(customer: user&.stripeCustomerID)['data'].map{|e| (!e['metadata']['paidBy'].blank? && e['metadata']['payout'] == 'true') ? payoutArray.push(e) : next }.flatten
 				end
+
 				debugger
-				payoutArray
+
+				payoutArray.map{|e| e['amountPaid']}.sum
 
 				render json: {
 					payouts: payoutArray,
 					returnOnInvestmentPercentage: returnOnInvestmentPercentage,
 					returnOnInvestmentNumber: returnOnInvestmentNumber,
-					depositTotal: depositTotal,
+					depositTotal: payoutArray.map{|e| e['amount']}.sum,
 					payoutTotal: payoutTotal,
 					success: true
 				}
