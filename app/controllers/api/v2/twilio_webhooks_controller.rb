@@ -1,7 +1,6 @@
 class Api::V2::TwilioWebhooksController < ApiController
 
 	def update
-    debugger
     # event = params['stripe_webhook']['type']
 
     # if event == 'issuing_authorization.request'

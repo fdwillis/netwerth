@@ -10,8 +10,6 @@ class Api::V2::StripePayoutsController < ApiController
 					pullPaymentsToFilter = Stripe::PaymentIntent.list(customer: user&.stripeCustomerID)['data'].map{|e| (!e['metadata']['paidBy'].blank? && e['metadata']['payout'] == 'true') ? payoutArray.push(e) : next }.flatten
 				end
 
-				debugger
-
 				payoutArray.map{|e| e['amountPaid']}.sum
 
 				render json: {
