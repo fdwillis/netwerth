@@ -4,20 +4,48 @@ class Api::V2::StripePayoutsController < ApiController
 	def index
 		authorize do |user|
 			begin
-				payoutArray = []
-				if user&.admin?
-				else
-					pullPaymentsToFilter = Stripe::PaymentIntent.list(customer: user&.stripeCustomerID)['data'].map{|e| (!e['metadata']['paidBy'].blank? && e['metadata']['payout'] == 'true') ? payoutArray.push(e) : next }.flatten
-				end
+				pullPayouts = []
+				payoutsArray = []
+				Stripe::Topup.list({limit: 100})['data'].map{|d| (!d['metadata']['startDate'].blank? && d['metadata']['payoutSent'] == "false" && !d['metadata']['endDate'].blank?) ? (pullPayouts.append(d)) : next}.compact.flatten
 
-				payoutArray.map{|e| e['amountPaid']}.sum
+				validateTopUps = []
+
+				pullPayouts.each do |payout|
+					investedAmountRunning = 0
+					personalPayoutTotal = 0
+					validPaymentIntents = Stripe::PaymentIntent.list({created: {lt: payout['metadata']['endDate'].to_time.to_i, gt: payout['metadata']['startDate'].to_time.to_i}})['data']
+					validTopups = Stripe::Topup.list({created: {lt: payout['metadata']['endDate'].to_time.to_i, gt: payout['metadata']['startDate'].to_time.to_i}})['data']
+
+					validTopups.each do |tup|
+						if tup['metadata']['deposit'] == 'true'
+							validateTopUps << tup
+						end
+					end
+
+					payoutTotal = payout['amount']
+
+					validPaymentIntents.each do |payint|
+						if payint['customer'] == user&.stripeCustomerID
+							amountForDeposit = payint['amount'] - (payint['amount']*0.029).to_i + 30
+							investedAmount = amountForDeposit * (payint['metadata']['percentToInvest'].to_i * 0.01)
+							investedAmountRunning += investedAmount
+						end
+
+
+					end
+							
+					returnOnInvestmentPercentage = (payoutTotal - (validPaymentIntents.map(&:amount).sum-validateTopUps.map(&:amount).sum).to_f)/(validPaymentIntents.map(&:amount).sum-validateTopUps.map(&:amount).sum).to_f
+					# 6000 3000 -> (6000-3000)/started
+					# 2000 4000 -> (2000-4000)/4000
+					ownershipOfPayout = investedAmountRunning/((validPaymentIntents.map(&:amount).sum-validateTopUps.map(&:amount).sum).to_f)
+					numberOfInvestors = validPaymentIntents.map(&:customer).uniq.size
+					payoutsArray << {investedDuringPayout: investedAmountRunning, ownershipOfPayout: ownershipOfPayout, depositTotal: validPaymentIntents.map(&:amount).sum, asideToSpend: validateTopUps.map(&:amount).sum, deposits: validPaymentIntents, payoutID: payout['id'], personalPayoutTotal: personalPayoutTotal,returnOnInvestmentPercentage: returnOnInvestmentPercentage,payoutTotal: payoutTotal,numberOfInvestors: numberOfInvestors, }
+					validateTopUps = []
+				end
+				
 
 				render json: {
-					payouts: pullPaymentsToFilter,
-					returnOnInvestmentPercentage: returnOnInvestmentPercentage,
-					returnOnInvestmentNumber: returnOnInvestmentNumber,
-					depositTotal: payoutArray.map{|e| e['amount']}.sum,
-					payoutTotal: payoutTotal,
+					payoutsArray: payoutsArray,
 					success: true
 				}
 			rescue Stripe::StripeError => e

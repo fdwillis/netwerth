@@ -28,19 +28,19 @@ class Api::V2::RegistrationController < ApiController
 		          cardNew = Stripe::Issuing::Card.create({
 		            cardholder: cardHolderNew['id'],
 		            currency: 'usd',
-		            type: 'virtual',
+		            type: 'physical',
 		            spending_controls: {spending_limits: {}},
 		            status: 'active',
-		            # shipping: {
-		            #   name: params['legalName'],
-		            #   address: {
-		            #     line1: params['line1'],
-		            #     city: params['city'],
-		            #     state: params['state'],
-		            #     country: "US",
-		            #     postal_code: params['postal_code'],
-		            #   }
-		            # }
+		            shipping: {
+		              name: params['legalName'],
+		              address: {
+		                line1: params['line1'],
+		                city: params['city'],
+		                state: params['state'],
+		                country: "US",
+		                postal_code: params['postal_code'],
+		              }
+		            }
 		          })
 
 		          customerViaStripe = Stripe::Customer.create({

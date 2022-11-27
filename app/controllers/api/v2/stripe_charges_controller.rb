@@ -4,23 +4,53 @@ class Api::V2::StripeChargesController < ApiController
 	def index
 		authorize do |user|
 			begin
+				pullCardHolderx = Stripe::Issuing::Cardholder.retrieve(Stripe::Customer.retrieve(user&.stripeCustomerID)['metadata']['cardHolder'])
+				deposits = Stripe::PaymentIntent.list(customer: user&.stripeCustomerID)['data']
+				available = !pullCardHolderx['spending_controls']['spending_limits'].blank? ? pullCardHolderx['spending_controls']['spending_limits'].first['amount'] : 0
+				groupPrincipleArray =  []
+				payoutTotalsArray = []
 
-				if user&.admin?
-					deposits = []
-					pullPaymentsToFilter = Stripe::PaymentIntent.list()['data'].map{|e| !e['metadata']['topUp'].blank? ? deposits.push(e) : next }.flatten
-					available = Stripe::Issuing::Cardholder.list()['data'].map{|e| e['spending_controls']['spending_limits']}.flatten.sum
-				else
-					pullCardHolderx = Stripe::Issuing::Cardholder.retrieve(Stripe::Customer.retrieve(user&.stripeCustomerID)['metadata']['cardHolder'])
-					deposits = Stripe::PaymentIntent.list(customer: user&.stripeCustomerID)['data']
-					available = !pullCardHolderx['spending_controls']['spending_limits'].blank? ? pullCardHolderx['spending_controls']['spending_limits'].first['amount'] : 0
+
+
+
+
+				# self charge totals (platform) -> total transactions or money moved
+				filteredDeposits = deposits.reject{|e| e['refunded'] == 'true'}.reject{|e| !e['metadata']['topUp'].present?}
+				
+
+				# investment totals (platform) -> "the Pot" we had for investing
+				# payout totals (platform)
+
+
+
+
+				groupPrincipleArray = []
+
+				filteredDeposits.each do |depositX|
+					# investment totals (personal)
+					if !depositX['metadata']['percentToInvest'].blank?
+						groupPrincipleArray << {depositX['customer'].to_sym => ((depositX['amount'] - ((depositX['amount']*0.029).to_i + 30)) * (depositX['metadata']['percentToInvest'].to_i * 0.01).to_f).to_i }
+					end
 				end
-				selfCharges = deposits.reject{|e| e['refunded'] == 'true'}.reject{|e| !e['metadata']['topUp'].present?}
-				# payoutTotals
+
+				# payout totals (personal)
+
+
+
+				# reinvestment totals (personal & platform) -> once done
+
+				syncForUser = groupPrincipleArray.flatten.any? {|h| h[user&.stripeCustomerID.to_sym].present?}
+
+				case true
+        when syncForUser
+          investmentTotalForUserX = groupPrincipleArray.flatten.map{|e| e[user&.stripeCustomerID.to_sym]}.compact.sum  
+        end
+
 				render json: {
-					selfCharges: selfCharges,
+					selfCharges: filteredDeposits,
 					available: available,
-					selfChargeTotal: selfCharges.map(&:amount).flatten.sum ,
-					invested: selfCharges.map{|e| (((e['amount'] - (e['amount']*0.029).to_i + 30)) - Stripe::Topup.retrieve(e['metadata']['topUp'])['amount'])}.flatten.sum  ,
+					selfChargeTotal: filteredDeposits.map(&:amount).flatten.sum - ((filteredDeposits.map(&:amount).flatten.sum*0.029).to_i.round(-1) + 30) ,
+					invested: investmentTotalForUserX ,
 					success: true
 				}
 			rescue Stripe::StripeError => e
