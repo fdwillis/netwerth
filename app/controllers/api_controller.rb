@@ -52,7 +52,7 @@ class ApiController < ApplicationController
         render json: {message: "Please choose an account type", success: false}
       end
     else
-      render json: {message: "Invalid Token", success: false}, status: 401
+      yield
     end
   end
 
@@ -119,7 +119,7 @@ class ApiController < ApplicationController
     if !authorization_token.blank?
       user = User.find_by(authentication_token: authorization_token)
     else
-      user = current_user
+      user = nil
     end
   end
   

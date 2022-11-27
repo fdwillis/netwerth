@@ -25,7 +25,7 @@ class Api::V2::StripePayoutsController < ApiController
 					payoutTotal = payout['amount']
 
 					validPaymentIntents.each do |payint|
-						if payint['customer'] == user&.stripeCustomerID
+						if payint['customer'] == (!user&.stripeCustomerID.blank? ? user&.stripeCustomerID : false)
 							amountForDeposit = payint['amount'] - (payint['amount']*0.029).to_i + 30
 							investedAmount = amountForDeposit * (payint['metadata']['percentToInvest'].to_i * 0.01)
 							investedAmountRunning += investedAmount
