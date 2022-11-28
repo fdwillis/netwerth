@@ -6,7 +6,7 @@ class Api::V2::StripePayoutsController < ApiController
 			begin
 				pullPayouts = []
 				payoutsArray = []
-				Stripe::Topup.list({limit: 100})['data'].map{|d| (!d['metadata']['startDate'].blank? && d['metadata']['payoutSent'] == "false" && !d['metadata']['endDate'].blank?) ? (pullPayouts.append(d)) : next}.compact.flatten
+				Stripe::Topup.list({limit: 100})['data'].map{|d| (!d['metadata']['startDate'].blank? && !d['metadata']['endDate'].blank?) ? (pullPayouts.append(d)) : next}.compact.flatten
 
 				validateTopUps = []
 
