@@ -8,8 +8,9 @@ namespace :issueProfit do
       principleInvestedArray = []
       pullPayouts.each do |payoutForInvestors|
         # if Date.today > DateTime.strptime(payoutForInvestors['expected_availability_date'].to_s,'%s').to_date + 1  
-          startDate = DateTime.strptime(payoutForInvestors['metadata']['startDate'].to_s,"%Y-%m-%d").to_date
-          endDate = DateTime.strptime(payoutForInvestors['metadata']['endDate'].to_s,"%Y-%m-%d").to_date
+          # DateTime.now.in_time_zone.strftime("%d/%m/%Y %H:%M")
+          startDate = DateTime.strptime(payoutForInvestors['metadata']['startDate'].to_s,"%Y-%m-%d %H:%M").to_date
+          endDate = DateTime.strptime(payoutForInvestors['metadata']['endDate'].to_s,"%Y-%m-%d %H:%M").to_date
 
           validPaymentIntents = Stripe::PaymentIntent.list({created: {lt: endDate.to_time.to_i, gt: startDate.to_time.to_i}})['data']
           #grab all reinvestments
