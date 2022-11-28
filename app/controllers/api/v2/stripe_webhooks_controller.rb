@@ -51,7 +51,7 @@ class Api::V2::StripeWebhooksController < ApiController
       amountToIssue = ((chargeAmount - stripeFee) * percentToIssue).to_i
       someCalAmount = loadSpendingMeta.empty? ? amountToIssue : loadSpendingMeta&.first['amount'].to_i + amountToIssue
 
-      if amountToIssue >= 100
+      if customerToGrab['metadata']['percentToInvest'] != 100
         topUp = Stripe::Topup.create({
           amount: amountToIssue,
           currency: 'usd',

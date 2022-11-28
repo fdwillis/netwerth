@@ -15,7 +15,7 @@ class Api::V2::StripeChargesController < ApiController
 
 
 				# self charge totals (platform) -> total transactions or money moved
-				filteredDeposits = deposits.reject{|e| e['refunded'] == 'true'}.reject{|e| !e['metadata']['topUp'].present?}
+				filteredDeposits = deposits.reject{|e| e['refunded'] == 'true'}.reject{|e| !e['metadata']['percentToInvest'].present?}
 				
 
 				# investment totals (platform) -> "the Pot" we had for investing

@@ -45,13 +45,11 @@ namespace :issueProfit do
           end
 
           validPaymentIntents.each do |paymentInt|
-            # loadPaidByForMultiPayment
             loadMultiPayIDs = paymentInt['metadata']['paidBy'].blank? ? "#{payoutForInvestors['id']}, " : "#{paymentInt['metadata']['paidBy']}#{payoutForInvestors['id']}, "
-            # loadMultiPayAmount = paymentInt['metadata']['amountPaid'].blank? ? @amountToIssue : paymentInt['metadata']['amountPaid'].to_i + @amountToIssue
             
             Stripe::PaymentIntent.update(paymentInt['id'], metadata: {payout: true, paidBy: loadMultiPayIDs})
           end
-          # Stripe::Topup.update(payoutForInvestors['id'], metadata: {payoutSent: true})
+          Stripe::Topup.update(payoutForInvestors['id'], metadata: {payoutSent: true})
           
         # else
         #   puts "waiting to clear: alert payouts coming soon with expected deposit"
