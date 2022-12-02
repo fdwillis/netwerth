@@ -41,6 +41,7 @@ class Api::V2::StripePayoutsController < ApiController
 					payoutsArray << {investedDuringPayout: investedAmountRunning, ownershipOfPayout: ownershipOfPayout, depositTotal: validPaymentIntents.map(&:amount).sum, asideToSpend: validateTopUps.map(&:amount).sum, deposits: validPaymentIntents, payoutID: payout['id'], personalPayoutTotal: personalPayoutTotal,returnOnInvestmentPercentage: returnOnInvestmentPercentage,payoutTotal: payoutTotal,numberOfInvestors: numberOfInvestors, }
 					validateTopUps = []
 					investedAmountRunning = 0
+					numberOfInvestors = 0
 				end
 				
 
