@@ -43,8 +43,9 @@ namespace :issueProfit do
               someCalAmount = loadSpendingMeta.empty? ? @amountToIssue : loadSpendingMeta&.first['amount'].to_i + @amountToIssue
               
               Stripe::Issuing::Cardholder.update(cardholder['id'],{spending_controls: {spending_limits: [amount: someCalAmount, interval: 'per_authorization']}})
-              puts ">>>>>>phone:#{customerX['phone']}>>>>>>>>>>>>>>>>>>>>>Your Stock Market Debit Card balance has increased by $#{(@amountToIssue*0.01).round(2)}.\nThanks for investing with Netwerth!\nGet invested in the next round with another deposit!"
-              textSent = User.twilioText(customerX['phone'], "Your balance has increased by $#{(@amountToIssue*0.01).round}")
+              netwerthMessage = "Your Stock Market Debit Card balance has increased by $#{(@amountToIssue*0.01).round}.\nThank you for investing using the Stock Market Debit Card by Netwerth!\nGet invested in the next round with another deposit!"
+              puts ">>>>>>phone:#{customerX['phone']}>>>>>>>>>>>>>>>>>>>>>#{netwerthMessage}"
+              textSent = User.twilioText(customerX['phone'], "#{netwerthMessage}")
             end
           end
 
