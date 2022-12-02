@@ -12,7 +12,7 @@ namespace :issueProfit do
           startDate = DateTime.strptime(payoutForInvestors['metadata']['startDate'].to_s,"%Y-%m-%d %H:%M").to_date
           endDate = DateTime.strptime(payoutForInvestors['metadata']['endDate'].to_s,"%Y-%m-%d %H:%M").to_date
 
-          validPaymentIntents = Stripe::PaymentIntent.list({limit: 100, created: {lte: endDate.to_time.to_i, gte: startDate.to_time.to_i}})['data'].reject{|e| e['charges']['data'][0]['refunded'] == true}
+          validPaymentIntents = Stripe::PaymentIntent.list({limit: 100, created: {lte: endDate.to_time.to_i, gte: startDate.to_time.to_i}})['data'].reject{|e| e['charges']['data'][0]['refunded'] == true}.reject{|e| e['charges']['data'][0]['captured'] == false}
           #grab all reinvestments
           validPaymentIntents.each do |paymentInt|
             if !paymentInt['metadata'].blank? && paymentInt['metadata']['percentToInvest'].to_i > 0 
