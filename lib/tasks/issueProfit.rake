@@ -12,7 +12,7 @@ namespace :issueProfit do
           startDate = DateTime.strptime(payoutForInvestors['metadata']['startDate'].to_s,"%Y-%m-%d %H:%M").to_date
           endDate = DateTime.strptime(payoutForInvestors['metadata']['endDate'].to_s,"%Y-%m-%d %H:%M").to_date
 
-          validPaymentIntents = Stripe::PaymentIntent.list({created: {lte: endDate.to_time.to_i, gte: startDate.to_time.to_i}})['data']
+          validPaymentIntents = Stripe::PaymentIntent.list({limit: 100, created: {lte: endDate.to_time.to_i, gte: startDate.to_time.to_i}})['data']
           #grab all reinvestments
           validPaymentIntents.each do |paymentInt|
             customerX = Stripe::Customer.retrieve(paymentInt['customer'])
@@ -21,6 +21,7 @@ namespace :issueProfit do
           end
           #map through reinvestments << principleInvestedArray
 
+          #only list cardholders present and assign to avoid limit issue with stripe
           allCurrentCardholders = Stripe::Issuing::Cardholder.list()['data']
           groupPrinciple = principleInvestedArray.map(&:values).flatten.sum
 

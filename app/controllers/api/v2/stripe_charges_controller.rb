@@ -5,7 +5,7 @@ class Api::V2::StripeChargesController < ApiController
 		authorize do |user|
 			begin
 				pullCardHolderx = Stripe::Issuing::Cardholder.retrieve(Stripe::Customer.retrieve(user&.stripeCustomerID)['metadata']['cardHolder'])
-				deposits = Stripe::PaymentIntent.list(customer: user&.stripeCustomerID)['data']
+				deposits = Stripe::PaymentIntent.list(limit: 100, customer: user&.stripeCustomerID)['data']
 				available = !pullCardHolderx['spending_controls']['spending_limits'].blank? ? pullCardHolderx['spending_controls']['spending_limits'].first['amount'] : 0
 				groupPrincipleArray =  []
 				payoutTotalsArray = []
