@@ -14,7 +14,7 @@ class Api::V2::StripePayoutsController < ApiController
 					investedAmountRunning = 0
 					personalPayoutTotal = 0
 					validPaymentIntents = Stripe::PaymentIntent.list({limit: 100})['data'].reject{|e| e['charges']['data'][0]['refunded'] == true}.reject{|e| e['charges']['data'][0]['captured'] == false}
-					validTopups = Stripe::Topup.list({limit: 100, created: {lte: payout['metadata']['endDate'].to_time.to_i, gte: payout['metadata']['startDate'].to_time.to_i}})['data']
+					validTopups = Stripe::Topup.list({limit: 100, created: {lt: payout['metadata']['endDate'].to_time.to_i, gt: payout['metadata']['startDate'].to_time.to_i}})['data']
 
 					validTopups.each do |tup|
 						if tup['metadata']['deposit'] == 'true'
