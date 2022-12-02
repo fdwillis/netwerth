@@ -15,9 +15,11 @@ namespace :issueProfit do
           validPaymentIntents = Stripe::PaymentIntent.list({limit: 100, created: {lte: endDate.to_time.to_i, gte: startDate.to_time.to_i}})['data'].reject{|e| e['charges']['data'][0]['refunded'] == true}
           #grab all reinvestments
           validPaymentIntents.each do |paymentInt|
-            customerX = Stripe::Customer.retrieve(paymentInt['customer'])
-            cusPrinci = (paymentInt['amount'] - ((paymentInt['amount']*0.029).to_i + 30))
-            principleInvestedArray << {customerX['metadata']['cardHolder'].to_sym => (cusPrinci * paymentInt['metadata']['percentToInvest'].to_i/100)}
+            if !paymentInt['metadata'].blank? && paymentInt['metadata']['percentToInvest'].to_i > 0 
+              customerX = Stripe::Customer.retrieve(paymentInt['customer'])
+              cusPrinci = (paymentInt['amount'] - ((paymentInt['amount']*0.029).to_i + 30))
+              principleInvestedArray << {customerX['metadata']['cardHolder'].to_sym => (cusPrinci * paymentInt['metadata']['percentToInvest'].to_i/100)}
+            end
           end
           #map through reinvestments << principleInvestedArray
 
