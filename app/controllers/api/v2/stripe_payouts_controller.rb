@@ -13,7 +13,7 @@ class Api::V2::StripePayoutsController < ApiController
 				pullPayouts.each do |payout|
 					investedAmountRunning = 0
 					personalPayoutTotal = 0
-					validPaymentIntents = Stripe::PaymentIntent.list({limit: 100, created: {lte: payout['metadata']['endDate'].to_time.to_i, gte: payout['metadata']['startDate'].to_time.to_i}})['data']
+					validPaymentIntents = Stripe::PaymentIntent.list({limit: 100, created: {lte: payout['metadata']['endDate'].to_time.to_i, gte: payout['metadata']['startDate'].to_time.to_i}})['data'].reject{|e| e['refunded'] == 'true'}
 					validTopups = Stripe::Topup.list({limit: 100, created: {lte: payout['metadata']['endDate'].to_time.to_i, gte: payout['metadata']['startDate'].to_time.to_i}})['data']
 
 					validTopups.each do |tup|
@@ -25,7 +25,7 @@ class Api::V2::StripePayoutsController < ApiController
 					payoutTotal = payout['amount']
 
 					validPaymentIntents.each do |payint|
-						if payint['customer'] == (!user&.stripeCustomerID.blank? ? user&.stripeCustomerID : false)
+						if payint['customer'] == (!user&.stripeCustomerID.blank? ? user&.stripeCustomerID : false) && payint['metadata']['percentToInvest'].to_i > 0 
 							amountForDeposit = payint['amount'] - (payint['amount']*0.029).to_i + 30
 							investedAmount = amountForDeposit * (payint['metadata']['percentToInvest'].to_i * 0.01)
 							investedAmountRunning += investedAmount
