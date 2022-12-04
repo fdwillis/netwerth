@@ -9,41 +9,47 @@ class Api::V2::StripePayoutsController < ApiController
 				Stripe::Topup.list({limit: 100})['data'].map{|d| (!d['metadata']['startDate'].blank? && !d['metadata']['endDate'].blank?) ? (pullPayouts.append(d)) : next}.compact.flatten
 
 				validateTopUps = []
+				groupPrincipleArray = []
 
 				pullPayouts.each do |payout|
 					investedAmountRunning = 0
 					personalPayoutTotal = 0
 					validPaymentIntents = Stripe::PaymentIntent.list({limit: 100, created: {lt: payout['metadata']['endDate'].to_time.to_i, gt: payout['metadata']['startDate'].to_time.to_i}})['data'].reject{|e| e['charges']['data'][0]['refunded'] == true}.reject{|e| e['charges']['data'][0]['captured'] == false}
-					validTopups = Stripe::Topup.list({limit: 100, created: {lt: payout['metadata']['endDate'].to_time.to_i, gt: payout['metadata']['startDate'].to_time.to_i}})['data']
-
-					validTopups.each do |tup|
-						if tup['metadata']['deposit'] == 'true'
-							validateTopUps << tup
-						end
-					end
-
 					payoutTotal = payout['amount']
+
 					validPaymentIntents.each do |payint|
-						if payint['customer'] == (!user&.stripeCustomerID.blank? ? user&.stripeCustomerID : false) && payint['metadata']['percentToInvest'].to_i > 0 
-							amountForDeposit = payint['amount'] - (payint['amount']*0.029).to_i + 30
-							investedAmount = amountForDeposit * (payint['metadata']['percentToInvest'].to_i * 0.01)
+						if payint['metadata']['percentToInvest'].to_i > 0 
+
+							chargeXChargeAmount = User.paymentIntentNet(payint['id'])[:amount] * 0.01
+							chargeXChargeNet = User.paymentIntentNet(payint['id'])[:net] * 0.01
+							
+
+							netForDeposit = chargeXChargeNet
+							investedAmount = netForDeposit * (payint['metadata']['percentToInvest'].to_i * 0.01)
 							investedAmountRunning += investedAmount
+							groupPrincipleArray << {invested: (chargeXChargeNet * (payint['metadata']['percentToInvest'].to_i * 0.01).to_f), topUpAmount: payint['metadata']['topUp'].present? ? Stripe::Topup.retrieve(payint['metadata']['topUp'])['amount'] * 0.01 : 0 ,amount: chargeXChargeAmount,net: chargeXChargeNet, payint['customer'].to_sym => (chargeXChargeNet * (payint['metadata']['percentToInvest'].to_i * 0.01).to_f) }
+						
 						end
 
 
 					end
-							
+
+
+					investedTotal = groupPrincipleArray.flatten.map{|e| e[:invested]}.compact.sum
+					amountTotal = groupPrincipleArray.flatten.map{|e| e[:amount]}.compact.sum
+					netTotal = groupPrincipleArray.flatten.map{|e| e[:net]}.compact.sum
+					asideToSpend = groupPrincipleArray.flatten.map{|e| e[:topUpAmount]}.compact.sum
+				
 					returnOnInvestmentPercentage = (payoutTotal - (validPaymentIntents.map(&:amount).sum-validateTopUps.map(&:amount).sum).to_f)/(validPaymentIntents.map(&:amount).sum-validateTopUps.map(&:amount).sum).to_f
 					# 6000 3000 -> (6000-3000)/started
 					# 2000 4000 -> (2000-4000)/4000
-					ownershipOfPayout = investedAmountRunning/((validPaymentIntents.map(&:amount).sum-validateTopUps.map(&:amount).sum).to_f)
+					ownershipOfPayout = investedAmountRunning/(investedTotal)
 					numberOfInvestors = validPaymentIntents.map(&:customer).uniq.size
-					payoutsArray << {investedDuringPayout: investedAmountRunning, ownershipOfPayout: ownershipOfPayout, depositTotal: validPaymentIntents.map(&:amount).sum, asideToSpend: validateTopUps.map(&:amount).sum, deposits: validPaymentIntents, payoutID: payout['id'], personalPayoutTotal: personalPayoutTotal,returnOnInvestmentPercentage: returnOnInvestmentPercentage,payoutTotal: payoutTotal,numberOfInvestors: numberOfInvestors, }
-					validateTopUps = []
-					investedAmountRunning = 0
-					numberOfInvestors = 0
+					payoutsArray << {investedTotal: investedTotal, investedDuringPayout: investedAmountRunning, ownershipOfPayout: ownershipOfPayout, amountTotal: amountTotal, netTotal: netTotal, asideToSpend: asideToSpend, deposits: validPaymentIntents, payoutID: payout['id'], personalPayoutTotal: personalPayoutTotal,returnOnInvestmentPercentage: returnOnInvestmentPercentage,payoutTotal: payoutTotal,numberOfInvestors: numberOfInvestors, }
+					groupPrincipleArray = []
 				end
-				
+
+
 
 				render json: {
 					payoutsArray: payoutsArray,

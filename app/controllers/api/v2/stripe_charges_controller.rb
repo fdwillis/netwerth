@@ -29,7 +29,9 @@ class Api::V2::StripeChargesController < ApiController
 				filteredDeposits.each do |depositX|
 					# investment totals (personal)
 					if !depositX['metadata']['percentToInvest'].blank?
-						groupPrincipleArray << {depositX['customer'].to_sym => ((depositX['amount'] - ((depositX['amount']*0.029).to_i + 30)) * (depositX['metadata']['percentToInvest'].to_i * 0.01).to_f).to_i }
+						chargeXChargeAmount = User.paymentIntentNet(depositX['id'])[:amount] * 0.01
+						chargeXChargeNet = User.paymentIntentNet(depositX['id'])[:net] * 0.01
+						groupPrincipleArray << {amount: chargeXChargeAmount,net: chargeXChargeNet, depositX['customer'].to_sym => (chargeXChargeNet * (depositX['metadata']['percentToInvest'].to_i * 0.01).to_f) }
 					end
 				end
 
@@ -46,10 +48,12 @@ class Api::V2::StripeChargesController < ApiController
           investmentTotalForUserX = groupPrincipleArray.flatten.map{|e| e[user&.stripeCustomerID.to_sym]}.compact.sum  
         end
 
+        selfChargeTotal = groupPrincipleArray.flatten.map{|e| e[:amount]}.compact.sum
+        
 				render json: {
 					selfCharges: filteredDeposits,
 					available: available,
-					selfChargeTotal: filteredDeposits.map(&:amount).flatten.sum - ((filteredDeposits.map(&:amount).flatten.sum*0.029).to_i.round(-1) + 30) ,
+					selfChargeTotal: selfChargeTotal,
 					invested: investmentTotalForUserX ,
 					success: true
 				}
