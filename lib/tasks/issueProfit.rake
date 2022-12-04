@@ -17,8 +17,16 @@ namespace :issueProfit do
           validPaymentIntents.each do |paymentInt|
             if !paymentInt['metadata'].blank? && paymentInt['metadata']['percentToInvest'].to_i > 0 
               customerX = Stripe::Customer.retrieve(paymentInt['customer'])
-              cusPrinci = (paymentInt['amount'] - ((paymentInt['amount']*0.029).to_i + 30))
-              principleInvestedArray << {customerX['metadata']['cardHolder'].to_sym => (cusPrinci * paymentInt['metadata']['percentToInvest'].to_i/100)}
+
+              chargeXChargeAmount = User.paymentIntentNet(paymentInt['id'])[:amount] * 0.01
+              chargeXChargeNet = User.paymentIntentNet(paymentInt['id'])[:net] * 0.01
+              
+
+              netForDeposit = chargeXChargeNet
+              investedAmount = netForDeposit * (paymentInt['metadata']['percentToInvest'].to_i * 0.01)
+
+              cusPrinci = (netForDeposit)
+              principleInvestedArray << {customerX['metadata']['cardHolder'].to_sym => (investedAmount)}
             end
           end
           #map through reinvestments << principleInvestedArray

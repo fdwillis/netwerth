@@ -39,8 +39,7 @@ class Api::V2::StripePayoutsController < ApiController
 					amountTotal = groupPrincipleArray.flatten.map{|e| e[:amount]}.compact.sum
 					netTotal = groupPrincipleArray.flatten.map{|e| e[:net]}.compact.sum
 					asideToSpend = groupPrincipleArray.flatten.map{|e| e[:topUpAmount]}.compact.sum
-				
-					returnOnInvestmentPercentage = (payoutTotal - (validPaymentIntents.map(&:amount).sum-validateTopUps.map(&:amount).sum).to_f)/(validPaymentIntents.map(&:amount).sum-validateTopUps.map(&:amount).sum).to_f
+					returnOnInvestmentPercentage = ((payoutTotal * 0.01) - investedTotal)/investedTotal
 					# 6000 3000 -> (6000-3000)/started
 					# 2000 4000 -> (2000-4000)/4000
 					ownershipOfPayout = investedAmountRunning/(investedTotal)
