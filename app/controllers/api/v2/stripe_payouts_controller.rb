@@ -27,7 +27,7 @@ class Api::V2::StripePayoutsController < ApiController
 							netForDeposit = chargeXChargeNet
 							investedAmount = netForDeposit * (payint['metadata']['percentToInvest'].to_i * 0.01)
 							investedAmountRunning += investedAmount
-							groupPrincipleArray << {invested: (chargeXChargeNet * (payint['metadata']['percentToInvest'].to_i * 0.01).to_f), topUpAmount: payint['metadata']['topUp'].present? ? Stripe::Topup.retrieve(payint['metadata']['topUp'])['amount'] * 0.01 : 0 ,amount: chargeXChargeAmount,net: chargeXChargeNet, payint['customer'].to_sym => (chargeXChargeNet * (payint['metadata']['percentToInvest'].to_i * 0.01).to_f) }
+							groupPrincipleArray << {invested: (investedAmount).to_f, topUpAmount: payint['metadata']['topUp'].present? ? Stripe::Topup.retrieve(payint['metadata']['topUp'])['amount'] * 0.01 : 0 ,amount: chargeXChargeAmount,net: chargeXChargeNet, payint['customer'].to_sym => (investedAmount).to_f }
 						
 						end
 
@@ -43,9 +43,11 @@ class Api::V2::StripePayoutsController < ApiController
 					# 6000 3000 -> (6000-3000)/started
 					# 2000 4000 -> (2000-4000)/4000
 					ownershipOfPayout = investedAmountRunning/(investedTotal)
+					investedForUserX = user&.stripeCustomerID.present? ? groupPrincipleArray.flatten.map {|h| h[user&.stripeCustomerID.to_sym]}.compact.sum : 0
 					numberOfInvestors = validPaymentIntents.map(&:customer).uniq.size
-					payoutsArray << {investedTotal: investedTotal, investedDuringPayout: investedAmountRunning, ownershipOfPayout: ownershipOfPayout, amountTotal: amountTotal, netTotal: netTotal, asideToSpend: asideToSpend, deposits: validPaymentIntents, payoutID: payout['id'], personalPayoutTotal: personalPayoutTotal,returnOnInvestmentPercentage: returnOnInvestmentPercentage,payoutTotal: payoutTotal,numberOfInvestors: numberOfInvestors, }
+					payoutsArray << {investedForUserX: investedForUserX, investedTotal: investedTotal, investedDuringPayout: investedAmountRunning, ownershipOfPayout: ownershipOfPayout, amountTotal: amountTotal, netTotal: netTotal, asideToSpend: asideToSpend, deposits: validPaymentIntents, payoutID: payout['id'], personalPayoutTotal: personalPayoutTotal,returnOnInvestmentPercentage: returnOnInvestmentPercentage,payoutTotal: payoutTotal,numberOfInvestors: numberOfInvestors, }
 					groupPrincipleArray = []
+					investedAmountRunning = 0
 				end
 
 
