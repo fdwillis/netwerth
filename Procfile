@@ -1,0 +1,1 @@
+schedule: bundle exec clockwork config/schedule.rb
