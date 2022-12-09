@@ -1,3 +1,4 @@
-every 1.day at: '12:00 am' do 
-	rake "issueProfit:ifCleared"
-end
+require 'clockwork'
+include Clockwork
+
+every(1.day, 'issueProfit.ifCleared', :at => '00:00') {rake 'issueProfit:ifCleared'}
