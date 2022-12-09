@@ -2,13 +2,12 @@ namespace :issueProfit do
   
   task ifCleared: :environment do 
     pullPayouts = []
-    # Stripe::Payout.list['data']
+    
     Stripe::Topup.list({limit: 100})['data'].map{|d| d['metadata']['payoutSent'] == false.to_s ? (pullPayouts.append(d)) : next}.compact.flatten
     if !pullPayouts.blank?
       principleInvestedArray = []
       pullPayouts.each do |payoutForInvestors|
-        # if Date.today > DateTime.strptime(payoutForInvestors['expected_availability_date'].to_s,'%s').to_date + 1  
-          # DateTime.now.in_time_zone.strftime("%d/%m/%Y %H:%M")
+        if payoutForInvestors['status'] == 'succeeded'
           startDate = DateTime.strptime(payoutForInvestors['metadata']['startDate'].to_s,"%Y-%m-%d %H:%M").to_date
           endDate = DateTime.strptime(payoutForInvestors['metadata']['endDate'].to_s,"%Y-%m-%d %H:%M").to_date
 
@@ -29,9 +28,8 @@ namespace :issueProfit do
               principleInvestedArray << {customerX['metadata']['cardHolder'].to_sym => (investedAmount)}
             end
           end
-          #map through reinvestments << principleInvestedArray
+          #map through reinvestments << principleInvestedArray -> Stripe::Payout.list['data'] with some meta
 
-          #only list cardholders present and assign to avoid limit issue with stripe
           allCurrentCardholders = Stripe::Issuing::Cardholder.list()['data']
           groupPrinciple = principleInvestedArray.map(&:values).flatten.sum
 
@@ -64,9 +62,9 @@ namespace :issueProfit do
           end
           Stripe::Topup.update(payoutForInvestors['id'], metadata: {payoutSent: true})
           
-        # else
-        #   puts "waiting to clear: alert payouts coming soon with expected deposit"
-        # end
+        else
+          puts "waiting to clear: alert payouts coming soon with expected deposit"
+        end
       end
     else
       puts "Nothing to Run"
