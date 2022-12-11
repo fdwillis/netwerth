@@ -14,7 +14,7 @@ namespace :issueProfit do
           validPaymentIntents = Stripe::PaymentIntent.list({limit: 100, created: {lt: endDate.to_time.to_i, gt: startDate.to_time.to_i}})['data'].reject{|e| e['charges']['data'][0]['refunded'] == true}.reject{|e| e['charges']['data'][0]['captured'] == false}
           #grab all reinvestments
           validPaymentIntents.each do |paymentInt|
-            if !paymentInt['metadata'].blank? && paymentInt['metadata']['percentToInvest'].to_i > 0 
+            if !paymentInt['metadata'].blank? && !paymentInt['metadata']['percentToInvest'].blank? 
               customerX = Stripe::Customer.retrieve(paymentInt['customer'])
 
               chargeXChargeAmount = User.paymentIntentNet(paymentInt['id'])[:amount] * 0.01
