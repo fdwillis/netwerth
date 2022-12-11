@@ -25,34 +25,32 @@ namespace :issueProfit do
               investedAmount = netForDeposit * (paymentInt['metadata']['percentToInvest'].to_i * 0.01)
 
               cusPrinci = (netForDeposit)
-              principleInvestedArray << {customerX['metadata']['cardHolder'].to_sym => (investedAmount)}
+              principleInvestedArray << {amount:(investedAmount), cardHolder: customerX['metadata']['cardHolder']}
             end
           end
           #map through reinvestments << principleInvestedArray -> Stripe::Payout.list['data'] with some meta
 
-          allCurrentCardholders = Stripe::Issuing::Cardholder.list()['data']
-          groupPrinciple = principleInvestedArray.map(&:values).flatten.sum
+          groupPrinciple = principleInvestedArray.inject{|memo, el| memo.merge( el ){|k, old_v, new_v| old_v + new_v}}[:amount]
+          # principleInvestedArray -> payout from this array directly
 
-          allCurrentCardholders.each do |cardholder|
-            cardholderSym = cardholder['id'].to_sym
-            payoutToCardHolder = principleInvestedArray.flatten.any? {|h| h[cardholderSym].present?}
-            case true
-            when payoutToCardHolder
-              customerX = Stripe::Customer.retrieve(Stripe::Issuing::Cardholder.retrieve(cardholder['id'])['metadata']['stripeCustomerID'])
-              # test dividing amount issued by number of deposits per customer
 
-              investmentTotalForUserX = principleInvestedArray.flatten.map{|cardholderIDSym, ownership| cardholderIDSym[cardholderSym]}.compact.sum        
-              ownership = (investmentTotalForUserX.to_f/groupPrinciple.to_f)
-              @amountToIssue = (payoutForInvestors['amount'] * ownership).round
-              
-              loadSpendingMeta = cardholder['spending_controls']['spending_limits']
-              someCalAmount = loadSpendingMeta.empty? ? @amountToIssue : loadSpendingMeta&.first['amount'].to_i + @amountToIssue
-              
-              Stripe::Issuing::Cardholder.update(cardholder['id'],{spending_controls: {spending_limits: [amount: someCalAmount, interval: 'per_authorization']}})
-              netwerthMessage = "Your Stock Market Debit Card balance has increased by $#{(@amountToIssue*0.01).round}.\nThank you for investing using the Stock Market Debit Card by Netwerth!\nGet invested in the next round with another deposit!"
-              puts ">>>>>>phone:#{customerX['phone']}>>>>>>>>>>>>>>>>>>>>>#{netwerthMessage}"
-              # textSent = User.twilioText(customerX['phone'], "#{netwerthMessage}")
-            end
+          principleInvestedArray.group_by{|e| e[:cardHolder]}.each do |payData|
+            cardholder = Stripe::Issuing::Cardholder.retrieve(payData[0])
+            customerX = Stripe::Customer.retrieve(cardholder['metadata']['stripeCustomerID'])
+            # test dividing amount issued by number of deposits per customer
+
+            investmentTotalForUserX = payData[1].map{|e| e[:amount]}.sum
+
+            ownership = ((investmentTotalForUserX * 100).to_f/(groupPrinciple * 100).to_f).round(2)
+            @amountToIssue = (payoutForInvestors['amount'] * ownership).round(2).to_i
+            
+            loadSpendingMeta = cardholder['spending_controls']['spending_limits']
+            someCalAmount = loadSpendingMeta.empty? ? @amountToIssue : loadSpendingMeta&.first['amount'].to_i + @amountToIssue
+            
+            Stripe::Issuing::Cardholder.update(cardholder['id'],{spending_controls: {spending_limits: [amount: someCalAmount, interval: 'per_authorization']}})
+            netwerthMessage = "Your Stock Market Debit Card balance has increased by $#{(@amountToIssue*0.01).round(2)}.\nThank you for investing using the Stock Market Debit Card by Netwerth!\nGet invested in the next round with another deposit!"
+            puts ">>>>>>phone:#{customerX['phone']}>>>>>>>>>>>>>>>>>>>>>#{netwerthMessage}"
+            # textSent = User.twilioText(customerX['phone'], "#{netwerthMessage}")
           end
 
           validPaymentIntents.each do |paymentInt|
