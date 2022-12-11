@@ -50,7 +50,7 @@ namespace :issueProfit do
             Stripe::Issuing::Cardholder.update(cardholder['id'],{spending_controls: {spending_limits: [amount: someCalAmount, interval: 'per_authorization']}})
             netwerthMessage = "Your Stock Market Debit Card balance has increased by $#{(@amountToIssue*0.01).round(2)}.\nThank you for investing using the Stock Market Debit Card by Netwerth!\nGet invested in the next round with another deposit!"
             puts ">>>>>>phone:#{customerX['phone']}>>>>>>>>>>>>>>>>>>>>>#{netwerthMessage}>>>>>>#{cardholder['id']}"
-            # textSent = User.twilioText(customerX['phone'], "#{netwerthMessage}")
+            textSent = User.twilioText(customerX['phone'], "#{netwerthMessage}")
           end
 
           validPaymentIntents.each do |paymentInt|
