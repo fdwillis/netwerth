@@ -93,6 +93,7 @@ class Api::V2::StripeCustomersController < ApiController
 			if user&.stripeCustomerID		
 				updated = Stripe::Customer.update(
 					user&.stripeCustomerID,{
+				   	source: stripeAllowed[:source],
 				   	email: stripeAllowed[:email],
 				   	phone: stripeAllowed[:phone],
 				   	metadata: {percentToInvest: stripeAllowed[:percentToInvest]},
