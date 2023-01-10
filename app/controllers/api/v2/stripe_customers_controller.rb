@@ -90,42 +90,29 @@ class Api::V2::StripeCustomersController < ApiController
 
 	def update
 		authorize do |user|
-			begin
-				if user&.stripeCustomerID		
-					updated = Stripe::Customer.update(
-						user&.stripeCustomerID,{
-					   	source: stripeAllowed[:source],
-					  }
-					)
-				end
-				
-				user.update(email: stripeAllowed[:email], phone: stripeAllowed[:phone])
-
-				render json: {
-					success: true
-				}
-				return
-				
-			rescue Stripe::StripeError => e
-				render json: {
-					message: e,
-					success: false
-				}, status: 422
-				
-			rescue Exception => e
-				
-				render json: {
-					message: e,
-					success: false
-				}, status: 422
+			if user&.stripeCustomerID		
+				updated = Stripe::Customer.update(
+					user&.stripeCustomerID,{
+				   	email: stripeAllowed[:email],
+				   	phone: stripeAllowed[:phone],
+				   	metadata: {percentToInvest: stripeAllowed[:percentToInvest]},
+				  }
+				)
 			end
+			
+			user.update(email: stripeAllowed[:email], phone: stripeAllowed[:phone], percentToInvest: stripeAllowed[:percentToInvest])
+
+			render json: {
+				success: true
+			}
+			return
 		end
 	end
 
 	private
 
 	def stripeAllowed
-		paramsClean = params.permit(:source, :name, :email, :phone, :connectAccount)
+		paramsClean = params.permit(:source, :name, :email, :phone, :connectAccount, :percentToInvest)
 		return paramsClean.reject{|_, v| v.blank?}
 	end
 
